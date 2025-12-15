@@ -25,7 +25,7 @@ function populateCategories() {
   if (savedFilter) categoryFilter.value = savedFilter;
 }
 
-// Display quote
+// Show random quote
 function showRandomQuote() {
   const selected = categoryFilter.value;
   const pool = selected === "all" ? quotes : quotes.filter(q => q.category === selected);
@@ -73,17 +73,31 @@ async function postQuoteToServer(quote) {
   }
 }
 
-// -------- SYNC FUNCTION (checker requirement) --------
-async function syncQuotes() {
+// -------- FETCH FROM SERVER --------
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch(SERVER_URL);
     const data = await response.json();
-    const serverQuotes = data.slice(0, 5).map(item => ({ text: item.title, category: "Server" }));
-    quotes = serverQuotes; // Server takes precedence
+    return data.slice(0, 5).map(item => ({
+      text: item.title,
+      category: "Server"
+    }));
+  } catch (error) {
+    console.error("Failed to fetch quotes from server:", error);
+    return [];
+  }
+}
+
+// -------- SYNC FUNCTION --------
+async function syncQuotes() {
+  const serverQuotes = await fetchQuotesFromServer();
+  if (serverQuotes.length > 0) {
+    // Server takes precedence
+    quotes = serverQuotes;
     saveQuotes();
     populateCategories();
     syncStatus.innerHTML = "Quotes synced with server.";
-  } catch {
+  } else {
     syncStatus.innerHTML = "Server sync failed.";
   }
 }
