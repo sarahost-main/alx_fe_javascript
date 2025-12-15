@@ -30,35 +30,46 @@ function populateCategories() {
 // Display quote
 function showRandomQuote() {
   const selected = categoryFilter.value;
-  const filtered = selected === "all"
+  const pool = selected === "all"
     ? quotes
     : quotes.filter(q => q.category === selected);
 
-  if (filtered.length === 0) {
+  if (pool.length === 0) {
     quoteDisplay.innerHTML = "No quotes available.";
     return;
   }
 
-  const quote = filtered[Math.floor(Math.random() * filtered.length)];
+  const quote = pool[Math.floor(Math.random() * pool.length)];
   quoteDisplay.innerHTML = `"${quote.text}" — <strong>${quote.category}</strong>`;
   sessionStorage.setItem("lastQuote", JSON.stringify(quote));
 }
 
-// Filter handler
+// Filter
 function filterQuotes() {
   localStorage.setItem("selectedCategory", categoryFilter.value);
   showRandomQuote();
 }
 
-// Add quote
-function addQuote() {
+// Add quote + POST to server
+async function addQuote() {
   const text = document.getElementById("newQuoteText").value.trim();
   const category = document.getElementById("newQuoteCategory").value.trim();
   if (!text || !category) return;
 
-  quotes.push({ text, category });
+  const newQuote = { text, category };
+
+  quotes.push(newQuote);
   saveQuotes();
   populateCategories();
+
+  // Simulated POST request
+  await fetch(SERVER_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(newQuote)
+  });
 
   document.getElementById("newQuoteText").value = "";
   document.getElementById("newQuoteCategory").value = "";
@@ -99,9 +110,9 @@ function importFromJsonFile(event) {
   reader.readAsText(event.target.files[0]);
 }
 
-// -------- SERVER SIMULATION --------
+// -------- SERVER SYNC --------
 
-// REQUIRED FUNCTION NAME
+// REQUIRED fetch function
 async function fetchQuotesFromServer() {
   try {
     const response = await fetch(SERVER_URL);
@@ -112,13 +123,12 @@ async function fetchQuotesFromServer() {
       category: "Server"
     }));
 
-    // Server takes precedence
     quotes = serverQuotes;
     saveQuotes();
     populateCategories();
 
     syncStatus.innerHTML = "Server sync completed. Server data applied.";
-  } catch (error) {
+  } catch {
     syncStatus.innerHTML = "Server sync failed.";
   }
 }
