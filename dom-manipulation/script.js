@@ -15,35 +15,36 @@ function saveQuotes() {
 function populateCategories() {
   const categories = [...new Set(quotes.map(q => q.category))];
   categoryFilter.innerHTML = `<option value="all">All Categories</option>`;
+
   categories.forEach(cat => {
-    const opt = document.createElement("option");
-    opt.value = cat;
-    opt.textContent = cat;
-    categoryFilter.appendChild(opt);
+    const option = document.createElement("option");
+    option.value = cat;
+    option.textContent = cat;
+    categoryFilter.appendChild(option);
   });
 
-  const saved = localStorage.getItem("selectedCategory");
-  if (saved) categoryFilter.value = saved;
+  const savedFilter = localStorage.getItem("selectedCategory");
+  if (savedFilter) categoryFilter.value = savedFilter;
 }
 
 // Display quote
 function showRandomQuote() {
   const selected = categoryFilter.value;
-  const pool = selected === "all"
+  const filtered = selected === "all"
     ? quotes
     : quotes.filter(q => q.category === selected);
 
-  if (pool.length === 0) {
+  if (filtered.length === 0) {
     quoteDisplay.innerHTML = "No quotes available.";
     return;
   }
 
-  const quote = pool[Math.floor(Math.random() * pool.length)];
+  const quote = filtered[Math.floor(Math.random() * filtered.length)];
   quoteDisplay.innerHTML = `"${quote.text}" — <strong>${quote.category}</strong>`;
   sessionStorage.setItem("lastQuote", JSON.stringify(quote));
 }
 
-// Filter
+// Filter handler
 function filterQuotes() {
   localStorage.setItem("selectedCategory", categoryFilter.value);
   showRandomQuote();
@@ -98,32 +99,32 @@ function importFromJsonFile(event) {
   reader.readAsText(event.target.files[0]);
 }
 
-// ---------------- SERVER SYNC ----------------
+// -------- SERVER SIMULATION --------
 
-// Fetch server quotes (server wins)
-async function syncWithServer() {
+// REQUIRED FUNCTION NAME
+async function fetchQuotesFromServer() {
   try {
     const response = await fetch(SERVER_URL);
     const data = await response.json();
 
-    // Simulated server quotes
     const serverQuotes = data.slice(0, 5).map(item => ({
       text: item.title,
       category: "Server"
     }));
 
-    quotes = serverQuotes; // server precedence
+    // Server takes precedence
+    quotes = serverQuotes;
     saveQuotes();
     populateCategories();
 
-    syncStatus.innerHTML = "Quotes synced with server (server data applied).";
-  } catch {
+    syncStatus.innerHTML = "Server sync completed. Server data applied.";
+  } catch (error) {
     syncStatus.innerHTML = "Server sync failed.";
   }
 }
 
 // Periodic sync
-setInterval(syncWithServer, 30000);
+setInterval(fetchQuotesFromServer, 30000);
 
 // Events
 document.getElementById("newQuote").addEventListener("click", showRandomQuote);
@@ -133,4 +134,4 @@ document.getElementById("importFile").addEventListener("change", importFromJsonF
 // Init
 populateCategories();
 createAddQuoteForm();
-syncWithServer();
+fetchQuotesFromServer();
