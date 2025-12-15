@@ -1,63 +1,73 @@
-// Array to store quote objects
+// Array to store quotes
 let quotes = [
   { text: "The best way to get started is to quit talking and begin doing.", category: "Motivation" },
   { text: "Life is what happens when you're busy making other plans.", category: "Life" },
-  { text: "The mind is everything. What you think you become.", category: "Wisdom" }
+  { text: "Do not take life too seriously. You will never get out of it alive.", category: "Humor" }
 ];
 
-// Cache DOM elements
+// DOM element for displaying quotes
 const quoteDisplay = document.getElementById("quoteDisplay");
-const newQuoteBtn = document.getElementById("newQuote");
-const addQuoteBtn = document.getElementById("addQuoteBtn");
-const newQuoteText = document.getElementById("newQuoteText");
-const newQuoteCategory = document.getElementById("newQuoteCategory");
-const categorySelect = document.getElementById("categorySelect");
 
-// Helper: Update categories in the dropdown
-function updateCategories() {
-  const categories = ["all", ...new Set(quotes.map(q => q.category))];
-  categorySelect.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-}
-
-// Function: Show a random quote
+// Function to display a random quote
 function showRandomQuote() {
-  let filteredQuotes = quotes;
-  const selectedCategory = categorySelect.value;
-
-  if (selectedCategory !== "all") {
-    filteredQuotes = quotes.filter(q => q.category === selectedCategory);
-  }
-
-  if (filteredQuotes.length === 0) {
-    quoteDisplay.textContent = "No quotes available for this category.";
+  if (quotes.length === 0) {
+    quoteDisplay.textContent = "No quotes available.";
     return;
   }
-
-  const randomIndex = Math.floor(Math.random() * filteredQuotes.length);
-  quoteDisplay.textContent = `"${filteredQuotes[randomIndex].text}" — ${filteredQuotes[randomIndex].category}`;
+  const randomIndex = Math.floor(Math.random() * quotes.length);
+  const quote = quotes[randomIndex];
+  quoteDisplay.textContent = `"${quote.text}" — ${quote.category}`;
 }
 
-// Function: Add a new quote
+// Function to add a new quote
 function addQuote() {
-  const text = newQuoteText.value.trim();
-  const category = newQuoteCategory.value.trim();
+  const quoteInput = document.getElementById("newQuoteText");
+  const categoryInput = document.getElementById("newQuoteCategory");
+
+  const text = quoteInput.value.trim();
+  const category = categoryInput.value.trim();
 
   if (!text || !category) {
-    alert("Please enter both a quote and a category.");
+    alert("Please enter both quote text and category.");
     return;
   }
 
   quotes.push({ text, category });
-  updateCategories();
-  newQuoteText.value = "";
-  newQuoteCategory.value = "";
+
+  quoteInput.value = "";
+  categoryInput.value = "";
+
   alert("Quote added successfully!");
 }
 
-// Event listeners
-newQuoteBtn.addEventListener("click", showRandomQuote);
-addQuoteBtn.addEventListener("click", addQuote);
-categorySelect.addEventListener("change", showRandomQuote);
+// Function to dynamically create the add-quote form
+function createAddQuoteForm() {
+  const formDiv = document.createElement("div");
 
-// Initialize categories
-updateCategories();
+  const quoteInput = document.createElement("input");
+  quoteInput.id = "newQuoteText";
+  quoteInput.type = "text";
+  quoteInput.placeholder = "Enter a new quote";
+
+  const categoryInput = document.createElement("input");
+  categoryInput.id = "newQuoteCategory";
+  categoryInput.type = "text";
+  categoryInput.placeholder = "Enter quote category";
+
+  const addBtn = document.createElement("button");
+  addBtn.id = "addQuoteBtn";
+  addBtn.textContent = "Add Quote";
+  addBtn.addEventListener("click", addQuote);
+
+  formDiv.appendChild(quoteInput);
+  formDiv.appendChild(categoryInput);
+  formDiv.appendChild(addBtn);
+
+  document.body.appendChild(formDiv);
+}
+
+// Event listener for showing random quote
+document.getElementById("newQuote").addEventListener("click", showRandomQuote);
+
+// Dynamically generate the add-quote form
+createAddQuoteForm();
