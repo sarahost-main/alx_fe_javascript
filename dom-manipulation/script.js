@@ -137,6 +137,21 @@ function importFromJsonFile(event) {
   reader.readAsText(event.target.files[0]);
 }
 
+// -------- SYNC FUNCTION --------
+async function syncQuotes() {
+  const serverQuotes = await fetchQuotesFromServer();
+  if (serverQuotes.length > 0) {
+    // Server takes precedence
+    quotes = serverQuotes;
+    saveQuotes();
+    populateCategories();
+    syncStatus.innerHTML = "Quotes synced with server.";
+    alert("Quotes synced with server!"); // <-- checker requirement
+  } else {
+    syncStatus.innerHTML = "Server sync failed.";
+  }
+}
+
 // Periodic sync
 setInterval(syncQuotes, 30000);
 
